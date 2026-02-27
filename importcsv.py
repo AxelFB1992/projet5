@@ -17,7 +17,7 @@ try:
     #healthcol.insert_one({"toto":"tata"})
     
     #on ouvre le fichier csv avec la fonction withopen
-    csv_file = "healthcare_dataset.csv"
+    csv_file = "data/healthcare_dataset.csv"
     with open(csv_file, 'r', encoding='utf-8') as f:
     #print(f.read())
         csv_reader = csv.DictReader(f)
