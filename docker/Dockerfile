@@ -1,15 +1,15 @@
 # Utiliser une image Python légère
-FROM python:3.9-slim
+# Dans docker/Dockerfile#
+FROM python:3.12-slim
 
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /app
 
 # Copier le fichier des dépendances et les installer
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY scripts/importcsv2.py .
 
-# Copier ton script de migration
-COPY importcsv2.py .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Commande par défaut pour lancer le script
 CMD ["python", "importcsv2.py"]

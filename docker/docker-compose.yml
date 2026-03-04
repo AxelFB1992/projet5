@@ -9,13 +9,23 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    networks:
+      - my_network
 
   migrator:
-    build: .
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile
     volumes:
-      - ./data:/data
+      - ${PWD}/data:/app/data
     depends_on:
       - mongodb
+    networks:
+      - my_network
 
 volumes:
   mongo-data:
+
+networks:
+  my_network:
+    driver: bridge

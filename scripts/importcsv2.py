@@ -3,12 +3,13 @@ from pymongo import MongoClient
 import os
 
 # Connexion à MongoDB (l'hôte est le nom du service dans docker-compose)
-client = MongoClient("mongodb://localhost:27017/")
+#client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient("mongodb://root:examplepassword@mongodb:27017/")
 db = client['healthcare_db']
 collection = db['patients']
 
 def migrate():
-    df = pd.read_csv('data/healthcare_dataset.csv')
+    df = pd.read_csv('/app/data/healthcare_dataset.csv')
     
     # Transformation en documents imbriqués
     records = []
