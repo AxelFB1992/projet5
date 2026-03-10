@@ -20,7 +20,8 @@ services:
         context: ..
         dockerfile: docker/Dockerfile
     volumes:
-      - ${PWD}/data:/app/data
+      - ../data:/app/data 
+      #- ${PWD}/data:/app/data
     depends_on:
       - mongodb
     networks:
