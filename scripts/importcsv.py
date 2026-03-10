@@ -2,6 +2,9 @@ import csv
 from pymongo import MongoClient
 
 # Connexion à MongoDB
+#Si on veut faire cela sur le mongodb local et visualiser la migration via compass
+#uri = "mongodb://localhost:27017/"
+#Si on veut faire cela sur le mongodb sur conteneur (service) mongodb lancé par le docker-compose.yml
 uri = "mongodb://root:examplepassword@mongodb:27017/"
 client = MongoClient(uri)
 

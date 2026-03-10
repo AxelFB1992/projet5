@@ -3,8 +3,8 @@ from pymongo import MongoClient
 import os
 
 # Connexion à MongoDB (l'hôte est le nom du service dans docker-compose)
-#client = MongoClient("mongodb://localhost:27017/")
-client = MongoClient("mongodb://root:examplepassword@mongodb:27017/")
+client = MongoClient("mongodb://localhost:27017/")
+#client = MongoClient("mongodb://root:examplepassword@mongodb:27017/")
 db = client['healthcare_db']
 collection = db['patients']
 
