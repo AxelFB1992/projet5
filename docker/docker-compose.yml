@@ -9,6 +9,8 @@ services:
     ports:
       - "27017:27017"
     volumes:
+    #Tout ce qui est écrit dans le dossier /data/db à l'intérieur du conteneur doit être sauvegardé dans le volume nommé mongo-data à l'extérieur
+    #L'image mongo:latest est configurée par ses développeurs pour stocker toutes ses données dans le dossier /data/db à l'intérieur du conteneur
       - mongo-data:/data/db
     networks:
       - my_network
