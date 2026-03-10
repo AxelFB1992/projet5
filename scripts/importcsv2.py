@@ -3,14 +3,17 @@ from pymongo import MongoClient
 import os
 
 # Connexion à MongoDB (l'hôte est le nom du service dans docker-compose)
+
 client = MongoClient("mongodb://localhost:27017/")
+#client = MongoClient("mongodb://127.0.0.1:27017/")
 #client = MongoClient("mongodb://root:examplepassword@mongodb:27017/")
+#client = MongoClient("mongodb://host.docker.internal:27017/")
 db = client['healthcare_db']
 collection = db['patients']
 
 def migrate():
-    df = pd.read_csv('/app/data/healthcare_dataset.csv')
-    
+    #df = pd.read_csv('/app/data/healthcare_dataset.csv')
+    df = pd.read_csv('data/healthcare_dataset.csv')
     # Transformation en documents imbriqués
     records = []
     for _, row in df.iterrows():
@@ -20,7 +23,7 @@ def migrate():
             "gender": row['Gender'],
             "blood_type": row['Blood Type'],
             "medical_info": {
-                "condition": row['Medicadl Condition'],
+                "condition": row['Medical Condition'],
                 "medication": row['Medication'],
                 "test_results": row['Test Results']
             },
