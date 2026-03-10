@@ -1,36 +1,57 @@
-from pymongo import MongoClient
 import csv
+from pymongo import MongoClient
 
-uri = "mongodb://localhost:27017/"
+# Connexion à MongoDB
+uri = "mongodb://root:examplepassword@mongodb:27017/"
 client = MongoClient(uri)
 
 try:
-    database = client.get_database("axel")
-    healthcol = database.get_collection("Collection2")
+    database = client.get_database("healthcare_db")
+    healthcol = database.get_collection("patients")
 
-    # Query for a movie that has the title 'Back to the Future'
-    #query = { "Name": "Bobby JacksOn" }
-    #movie = movies.find_one(query)
-
-    #print(movie)
-
-    #healthcol.insert_one({"toto":"tata"})
-    
-    #on ouvre le fichier csv avec la fonction withopen
     csv_file = "data/healthcare_dataset.csv"
+    
+    # Utilisation de DictReader pour traiter le fichier
     with open(csv_file, 'r', encoding='utf-8') as f:
-    #print(f.read())
         csv_reader = csv.DictReader(f)
+        
+        records = []
         for row in csv_reader:
-            print("Name", row['Name'], "Age", row['Age'])
-            document = {"Name": row['Name'],"Age": row['Age']} 
-            result = healthcol.insert_one(document)
-		
+            # Transformation des données en document imbriqué
+            document = {
+                "name": row['Name'],
+                "age": int(row['Age']),
+                "gender": row['Gender'],
+                "blood_type": row['Blood Type'],
+                "medical_info": {
+                    "condition": row['Medical Condition'],
+                    "medication": row['Medication'],
+                    "test_results": row['Test Results']
+                },
+                "hospitalization": {
+                    "admission_date": row['Date of Admission'],
+                    "discharge_date": row['Discharge Date'],
+                    "type": row['Admission Type'],
+                    "room": int(row['Room Number']),
+                    "doctor": row['Doctor'],
+                    "hospital": row['Hospital']
+                },
+                "billing": {
+                    "provider": row['Insurance Provider'],
+                    "amount": float(row['Billing Amount'])
+                }
+            }
+            records.append(document)
+        
+        # Insertion en masse pour optimiser les performances
+        if records:
+            healthcol.insert_many(records)
+            print(f"Migration réussie : {len(records)} patients insérés.")
+    
     client.close()
 
 except Exception as e:
-    raise Exception("Unable to find the document due to the following error: ", e)
-
+    print(f"Une erreur est survenue lors de la migration : {e}")
 
 """
 ouvrir le ficheir csv ("with open...")

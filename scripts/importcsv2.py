@@ -20,7 +20,7 @@ def migrate():
             "gender": row['Gender'],
             "blood_type": row['Blood Type'],
             "medical_info": {
-                "condition": row['Medical Condition'],
+                "condition": row['Medicadl Condition'],
                 "medication": row['Medication'],
                 "test_results": row['Test Results']
             },
