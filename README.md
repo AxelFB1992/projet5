@@ -1,7 +1,9 @@
-#🏥 Projet de Migration de Données Médicales (CSV vers MongoDB NoSQL)
+
+
+# 🏥 Projet de Migration de Données Médicales (CSV vers MongoDB NoSQL)
 Ce projet permet d'automatiser la migration d'un dataset de 55 500 patients hospitaliers depuis un format plat (CSV) vers une base de données NoSQL (MongoDB), tout en garantissant la portabilité grâce à l'orchestration Docker.
 
-##🛠 1. Configuration de l'Environnement de Travail
+## 🛠 1. Configuration de l'Environnement de Travail
 Installation de Git et Sécurisation SSH
 Avant de manipuler le code, l'environnement Debian (Trixie/WSL) doit être configuré :
 
