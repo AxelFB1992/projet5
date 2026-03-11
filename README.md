@@ -48,7 +48,7 @@ Nettoyage : Utilisation de healthcol.drop() pour réinitialiser la collection et
 
 Transformation : Lecture du CSV via DictReader. Chaque ligne est transformée en un document JSON complexe avec des sous-objets (medical_info, hospitalization, billing).
 
-Interactivité : Une pause input() est intégrée pour permettre à l'utilisateur de déclencher la migration manuellement.
+Interactivité : Une pause interactive via input() a été implémentée, mais la gestion de l'entrée standard (stdin) dans un environnement conteneurisé peut varier selon le terminal utilisé (WSL vs Debian natif). Pour garantir la fiabilité de la démonstration, nous avons préféré opter pour une exécution directe ou séquencée..
 
 ## 🐳 4. Conteneurisation et Orchestration
 Le Dockerfile
