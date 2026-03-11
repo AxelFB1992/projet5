@@ -1,4 +1,5 @@
 import csv
+import os
 from pymongo import MongoClient
 import time
 
@@ -6,7 +7,18 @@ import time
 #Si on veut faire cela sur le mongodb local et visualiser la migration via compass
 #uri = "mongodb://localhost:27017/"
 #Si on veut faire cela sur le mongodb sur conteneur (service) mongodb lancé par le docker-compose.yml
-uri = "mongodb://root:examplepassword@mongodb:27017/"
+
+#mongo_user = os.getenv('MONGO_ROOT_USER', 'root')
+#mongo_pass = os.getenv('MONGO_ROOT_PASSWORD', 'examplepassword')
+
+mongo_user = os.getenv('MONGO_ROOT_USER')
+mongo_pass = os.getenv('MONGO_ROOT_PASSWORD')
+
+#print(f"login :{mongo_user}")
+#print(f"mdp : {mongo_pass}")
+
+#uri = "mongodb://root:examplepassword@mongodb:27017/"
+uri = f"mongodb://{mongo_user}:{mongo_pass}@mongodb:27017/"
 client = MongoClient(uri)
 
 try:
@@ -16,7 +28,6 @@ try:
     #print("="*40)
     #input("\n>>> Appuyez sur ENTRÉE pour démarrer la migration...")
     #print("Migration en cours, veuillez patienter...\n")
-
     
     #print("La migration démarrera automatiquement dans 5 secondes...")
     #time.sleep(5)

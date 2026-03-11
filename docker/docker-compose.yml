@@ -4,8 +4,8 @@ services:
     image: mongo:latest
     environment:
     #Sécuriser les identifiants de connexion
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: examplepassword
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     ports:
       - "27017:27017"
     volumes:
@@ -19,6 +19,9 @@ services:
     build:
         context: ..
         dockerfile: docker/Dockerfile
+    environment:
+          - MONGO_ROOT_USER=${MONGO_ROOT_USER}
+          - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
     volumes:
       - ../data:/app/data 
       #- ${PWD}/data:/app/data

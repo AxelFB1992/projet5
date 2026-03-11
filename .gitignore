@@ -1,2 +1,3 @@
 venv/
 healthcare_dataset.csv:Zone.Identifier
+docker/.env
