@@ -26,6 +26,9 @@ services:
       - mongodb
     networks:
       - my_network
+    #Options permettant d'interagir avec le conteneur (migrator) via le terminal
+    stdin_open: true
+    tty: true
 
 volumes:
   mongo-data:
