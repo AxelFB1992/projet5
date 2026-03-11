@@ -35,7 +35,7 @@ Le projet est organisé de manière modulaire :
 
 /docker : Regroupe l'intelligence de déploiement :
 
-Dockerfile : Recette de construction de l'image Python.
+Dockerfile : Recette de construction de l'image Python du conteneur 'Migrator' (le script de migration).
 
 docker-compose.yml : Chef d'orchestre des services.
 
