@@ -13,6 +13,15 @@ collection = db['patients']
 
 def migrate():
     #df = pd.read_csv('/app/data/healthcare_dataset.csv')
+    df = kagglehub.load_dataset(
+      KaggleDatasetAdapter.PANDAS,
+      "prasad22/healthcare-dataset",
+      file_path,
+      # Provide any additional arguments like 
+      # sql_query or pandas_kwargs. See the 
+      # documenation for more information:
+      # https://github.com/Kaggle/kagglehub/blob/main/README.md#kaggledatasetadapterpandas
+    )
     df = pd.read_csv('data/healthcare_dataset.csv')
     # Transformation en documents imbriqués
     records = []

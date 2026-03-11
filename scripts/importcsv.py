@@ -21,64 +21,69 @@ mongo_pass = os.getenv('MONGO_ROOT_PASSWORD')
 uri = f"mongodb://{mongo_user}:{mongo_pass}@mongodb:27017/"
 client = MongoClient(uri)
 
-try:
-    
-    #print("\n" + "="*40)
-    print(" Script DE MIGRATION HEALTHCARE")
-    #print("="*40)
-    #input("\n>>> Appuyez sur ENTRÉE pour démarrer la migration...")
-    #print("Migration en cours, veuillez patienter...\n")
-    
-    #print("La migration démarrera automatiquement dans 5 secondes...")
-    #time.sleep(5)
-    
-    database = client.get_database("healthcare_db")
-    healthcol = database.get_collection("patients")
+def migrate_data():
 
-    csv_file = "data/healthcare_dataset.csv"
-
-    healthcol.drop()
-    # Utilisation de DictReader pour traiter le fichier
-    with open(csv_file, 'r', encoding='utf-8') as f:
-        csv_reader = csv.DictReader(f)
+    try:
         
-        records = []
-        for row in csv_reader:
-            # Transformation des données en document imbriqué
-            document = {
-                "name": row['Name'],
-                "age": int(row['Age']),
-                "gender": row['Gender'],
-                "blood_type": row['Blood Type'],
-                "medical_info": {
-                    "condition": row['Medical Condition'],
-                    "medication": row['Medication'],
-                    "test_results": row['Test Results']
-                },
-                "hospitalization": {
-                    "admission_date": row['Date of Admission'],
-                    "discharge_date": row['Discharge Date'],
-                    "type": row['Admission Type'],
-                    "room": int(row['Room Number']),
-                    "doctor": row['Doctor'],
-                    "hospital": row['Hospital']
-                },
-                "billing": {
-                    "provider": row['Insurance Provider'],
-                    "amount": float(row['Billing Amount'])
+        #print("\n" + "="*40)
+        print(" Script DE MIGRATION HEALTHCARE")
+        #print("="*40)
+        #input("\n>>> Appuyez sur ENTRÉE pour démarrer la migration...")
+        #print("Migration en cours, veuillez patienter...\n")
+        
+        #print("La migration démarrera automatiquement dans 5 secondes...")
+        #time.sleep(5)
+        
+        database = client.get_database("healthcare_db")
+        healthcol = database.get_collection("patients")
+
+        csv_file = "data/healthcare_dataset.csv"
+
+        healthcol.drop()
+        # Utilisation de DictReader pour traiter le fichier
+        with open(csv_file, 'r', encoding='utf-8') as f:
+            csv_reader = csv.DictReader(f)
+            
+            records = []
+            for row in csv_reader:
+                # Transformation des données en document imbriqué
+                document = {
+                    "name": row['Name'],
+                    "age": int(row['Age']),
+                    "gender": row['Gender'],
+                    "blood_type": row['Blood Type'],
+                    "medical_info": {
+                        "condition": row['Medical Condition'],
+                        "medication": row['Medication'],
+                        "test_results": row['Test Results']
+                    },
+                    "hospitalization": {
+                        "admission_date": row['Date of Admission'],
+                        "discharge_date": row['Discharge Date'],
+                        "type": row['Admission Type'],
+                        "room": int(row['Room Number']),
+                        "doctor": row['Doctor'],
+                        "hospital": row['Hospital']
+                    },
+                    "billing": {
+                        "provider": row['Insurance Provider'],
+                        "amount": float(row['Billing Amount'])
+                    }
                 }
-            }
-            records.append(document)
+                records.append(document)
+            
+            # Insertion en masse pour optimiser les performances
+            if records:
+                healthcol.insert_many(records)
+                print(f"Migration réussie : {len(records)} patients insérés.")
         
-        # Insertion en masse pour optimiser les performances
-        if records:
-            healthcol.insert_many(records)
-            print(f"Migration réussie : {len(records)} patients insérés.")
-    
-    client.close()
+        client.close()
 
-except Exception as e:
-    print(f"Une erreur est survenue lors de la migration : {e}")
+    except Exception as e:
+        print(f"Une erreur est survenue lors de la migration : {e}")
+
+if __name__ == "__main__":
+    migrate_data()
 
 """
 ouvrir le ficheir csv ("with open...")
