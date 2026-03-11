@@ -50,6 +50,32 @@ Transformation : Lecture du CSV via DictReader. Chaque ligne est transformée en
 
 Interactivité : Une pause interactive via input() a été implémentée, mais la gestion de l'entrée standard (stdin) dans un environnement conteneurisé peut varier selon le terminal utilisé (WSL vs Debian natif). Pour garantir la fiabilité de la démonstration, nous avons préféré opter pour une exécution directe ou séquencée..
 
+Contrairement au format CSV d'origine, les données sont restructurées dans MongoDB sous forme de documents JSON imbriqués. Cette approche permet de regrouper logiquement les informations liées à un même domaine (médical, hospitalier, facturation).
+
+Ci-dessous le schémas de la base de données tel qu'il est structuré suite à la migration vers mongodb. Chaque objet enregistré sera sous le format ci dessous, qu'on appelle également 'document' (format JSON). Chaque document est stockée dans une collection (ici 'patients'), elle-même stockée dans une bonne de donnée propre (healthcare_db) :
+
+| Champ | Type | Description |
+| :--- | :--- | :--- |
+| `_id` | ObjectId | Identifiant unique généré automatiquement par MongoDB. |
+| `name` | String | Nom et prénom du patient. |
+| `age` | Integer | Âge du patient lors de l'admission. |
+| `gender` | String | Genre du patient (Male/Female). |
+| `blood_type` | String | Groupe sanguin du patient. |
+| **`medical_info`** | **Object** | **Sous-document contenant les données cliniques :** |
+| ∟ `condition` | String | Pathologie ou condition médicale diagnostiquée. |
+| ∟ `medication` | String | Médicament prescrit au patient. |
+| ∟ `test_results` | String | Résultat des examens (Normal, Abnormal, etc.). |
+| **`hospitalization`** | **Object** | **Sous-document relatif au séjour à l'hôpital :** |
+| ∟ `admission_date` | String | Date d'entrée dans l'établissement. |
+| ∟ `discharge_date` | String | Date de sortie de l'établissement. |
+| ∟ `type` | String | Type d'admission (Emergency, Elective, Urgent). |
+| ∟ `room` | Integer | Numéro de la chambre assignée. |
+| ∟ `doctor` | String | Nom du médecin responsable. |
+| ∟ `hospital` | String | Nom de l'établissement de santé. |
+| **`billing`** | **Object** | **Sous-document financier :** |
+| ∟ `provider` | String | Nom de la compagnie d'assurance. |
+| ∟ `amount` | Float | Montant total facturé pour le séjour. |
+
 ## 🐳 4. Conteneurisation et Orchestration
 Le Dockerfile
 Il construit une image personnalisée pour le script :
