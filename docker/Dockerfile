@@ -7,9 +7,9 @@ WORKDIR /app
 
 # Copier le fichier des dépendances et les installer
 COPY requirements.txt .
-COPY scripts/importcsv.py .
+COPY scripts/importcsv2.py .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Commande par défaut pour lancer le script
-CMD ["python", "importcsv.py"]
+CMD ["python", "importcsv2.py"]
