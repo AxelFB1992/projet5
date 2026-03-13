@@ -112,9 +112,13 @@ def migrate():
     #insert_to_mongodb(documents,"mongodb://localhost:27017/","healthcare_db",'patients')
 
     # 1. Configuration (Variables d'environnement)
-    mongo_user = os.getenv('MONGO_ROOT_USER', 'root')
-    mongo_pass = os.getenv('MONGO_ROOT_PASSWORD', 'examplepassword')
-    mongo_host = os.getenv('MONGO_HOST', 'mongodb')
+    #mongo_user = os.getenv('MONGO_ROOT_USER', 'root')
+    #mongo_pass = os.getenv('MONGO_ROOT_PASSWORD', 'examplepassword')
+    #mongo_host = os.getenv('MONGO_HOST', 'mongodb')
+
+    mongo_user = os.getenv('MONGO_ROOT_USER')
+    mongo_pass = os.getenv('MONGO_ROOT_PASSWORD')
+    mongo_host = os.getenv('MONGO_HOST')
 
     #Si j'utilise le script seul, non conteneurisé 
     #mongo_host = os.getenv('MONGO_HOST', 'localhost')

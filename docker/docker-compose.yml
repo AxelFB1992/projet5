@@ -6,6 +6,7 @@ services:
     #Sécuriser les identifiants de connexion
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      #MONGO_INITDB_HOST: ${MONGO_HOST}
     ports:
       - "27017:27017"
     volumes:
@@ -22,6 +23,7 @@ services:
     environment:
           - MONGO_ROOT_USER=${MONGO_ROOT_USER}
           - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+          - MONGO_HOST=${MONGO_HOST}
     volumes:
       - ../data:/app/data 
       #- ${PWD}/data:/app/data
