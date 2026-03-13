@@ -78,7 +78,7 @@ de les orchestrer pour qu'ils puissent échanger des informations.
 
 	- Dockerfile : Recette de construction de l'image Python du conteneur 'Migrator' (le script de migration).
 	- docker-compose.yml : Chef d'orchestre des services. Permet de générer les conteneurs et de les configurer.
-	- init-db.js : Script de configuration automatique utilisateurs et rôles.
+	- mongo-init.js : Script de configuration automatique utilisateurs et rôles.
 
 3 utilisateurs mongodb sont définis par cette architecture :
 	- root : l'administrateur qui a tous les droits (lecture / écrire / ajout / suppression / modification)
@@ -102,15 +102,26 @@ Remarque : a noter que ce fichier est "ignoré" par git, il doit donc être pré
 de l'utilisateur qui récupère le projet depuis github et souhaite le faire fonctionner sur sa machine.
 
 ## 🐍 3. Le Script de Migration (importcsv2.py)
+
+### Fonctionnement du script 
 Le script utilise la bibliothèque pymongo. Sa logique interne est la suivante :
 
-Connexion : Il cible le service mongodb sur le port 27017 avec les identifiants root / examplepassword.
 
-Nettoyage : Utilisation de healthcol.drop() pour réinitialiser la collection et éviter les doublons en cas de relance.
+	- Connexion : Il cible le service mongodb sur le port 27017 avec les identifiants root / examplepassword.
+	Il utilise pour cela l'URI suivante : uri = f"mongodb://{mongo_write_user}:{mongo_write_user_password}@localhsot:27017/"
+	- Nettoyage : Le script de migration va systématiquement supprimer les éléments présents dans la collection visée. Cela permet
+	de s'assurer du bon déroulement de la migration en n'observant que les éléments prévus (et non des éléments qui seraient déjà présents avant la migration)
+	--> Utilisation de healthcol.drop() pour réinitialiser la collection et éviter les doublons en cas de relance.
+	- Transformation : Lecture du CSV via panda. Transformation en tant que DataFrame. Puis de Data Frame en tant que tableau de document.
+	Chaque ligne est transformée en un document JSON complexe avec des sous-objets (medical_info, hospitalization, billing).
+	- Insertion dans la base de données conteneurisée (Mongodb) : Le tableau de documents est alors inséré dans la base de données grâce
+	à la connexion déjà établi avec le conteneur Mongodb. Dès lors, les 55 500 patients sont intégrés avec succès dans la base de données.
 
-Transformation : Lecture du CSV via DictReader. Chaque ligne est transformée en un document JSON complexe avec des sous-objets (medical_info, hospitalization, billing).
+Remarques :
 
 Interactivité : Une pause interactive via input() a été implémentée, mais la gestion de l'entrée standard (stdin) dans un environnement conteneurisé peut varier selon le terminal utilisé (WSL vs Debian natif). Pour garantir la fiabilité de la démonstration, nous avons préféré opter pour une exécution directe ou séquencée..
+
+### Format de données
 
 Contrairement au format CSV d'origine, les données sont restructurées dans MongoDB sous forme de documents JSON imbriqués. Cette approche permet de regrouper logiquement les informations liées à un même domaine (médical, hospitalier, facturation).
 
@@ -139,27 +150,34 @@ Ci-dessous le schémas de la base de données tel qu'il est structuré suite à 
 | ∟ `amount` | Float | Montant total facturé pour le séjour. |
 
 ## 🐳 4. Conteneurisation et Orchestration
-Le Dockerfile
-Il construit une image personnalisée pour le script :
+
+1) Le Dockerfile
+Il construit une image personnalisée pour le service migrator, basé sur le script :
 
 Base : python:3.12-slim.
 
 Installation des dépendances via requirements.txt.
 
-Montage du code source.
+Montage du code source via le mécanisme du DockerFile.
 
-Le Docker Compose
+2) Le Docker Compose
 Il définit deux services essentiels :
 
-mongodb : Utilise l'image mongo:latest.
+	- mongodb : Utilise l'image mongo:latest.
+		Volumes :
+		Un volume d'entrée est crée pour que le fichier mongo-init.js puisse être transmis de la machine local vers le conteneur pour éxécution de l'environnement d'authentification.
+		Un volume de sortie nommé 'mongo-data' est créé pour que les données persistent même si le conteneur est supprimé.
+		Environnement :
+		Les variables MONGO_ROOT_USER et MONGO_ROOT_PASSWORD sont utilisés pour l'initialisation du conteneur : un premier compte doit impérativement être crée.
+		
+	- migrator : Notre script Python.
+		Volumes :
+		Un volume d'entrée est crée pour que le fichier healthcare_dataset.csv puisse être transmis de la machine local vers le conteneur pour migration.
+		Environnement :
+		Les variables MONGO_ROOT_USER, MONGO_ROOT_PASSWORD, MONGO_WRITE_USER, MONGO_WRITE_USER_PASSWORD, MONGO_READ_USER,
+		MONGO_READ_USER_PASSWORD, MONGO_HOST sont utilisés pour se connecter à la base de données sous différents utilisation avec différents roles.
 
-Volumes : Un volume nommé mongo-data est créé pour que les données persistent même si le conteneur est supprimé.
-
-migrator : Notre script Python.
-
-Interactif : Les options stdin_open: true et tty: true sont activées pour permettre l'interaction clavier (input()).
-
-Réseau : Les deux services communiquent via un bridge network privé.
+Réseau : Les deux services communiquent via un bridge network privé (my_network).
 
 ## 🚀 5. Procédure de Lancement
 Depuis la racine du projet, exécutez la commande suivante (le flag -f est nécessaire car le fichier est dans le dossier /docker) :
@@ -174,24 +192,38 @@ Docker construit l'image de migration (étape de pip install).
 
 MongoDB démarre en tâche de fond.
 
-Le script de migration affiche un message et attend que vous appuyiez sur [ENTRÉE].
+Le script de migration affiche un message qui indique si la migration a réussi ou non.
 
 ## 🧪 6. Vérification et Contrôle des Données
-Via le Terminal (Shell MongoDB)
+
+Pour vérifier seulement les données, il faut que le conteneur mongodb soit en cours d'execution. Il y a deux cas possibles !
+	- Soit l'application global (embarquant les deux conteneurs : mongodb et migrator) tourne encore, auquel cas c'est nécessairement que mongodb est encore en execution.
+	- Soit l'application global s'est arrêté auquel cas il faut relancer le conteneur mongodb.
+	Pour relancer seulement le conteneur mongodb (sans le conteneur migrator), on peut utiliser cette commande :
+	docker compose -f docker/docker-compose.yml up -d mongodb.
+	Celle ci permet notamment de lancer le conteneur mongodb en tâche de fond, sans bloquer le terminal.
+	Pour arrêter le conteneur, on utilisera la commande suivante : Arrêt : docker compose -f docker/docker-compose.yml down.
+	
+1) Via le Terminal (Shell MongoDB)
 Pour vérifier que les 55 500 documents sont présents :
 
 Bash
 docker exec -it docker-mongodb-1 mongosh -u root -p examplepassword
+
+--> On entre dans le shell mongosh, dans lequel on peut éxecuter les commandes suivantes :
 use healthcare_db
 db.patients.countDocuments()
-Via l'interface graphique (MongoDB Compass)
+	--> Devrait afficher le nombre de patients ajoutés, soit 55500 si la migration s'est bien déroulée.
+
+
+2) Via l'interface graphique (MongoDB Compass)
 Installez MongoDB Compass sur votre hôte.
 
 Connectez-vous avec l'URI : mongodb://root:examplepassword@localhost:27017/.
 
 Naviguez dans la base healthcare_db pour visualiser les documents imbriqués.
 
-Maintenance
+Maintenance - Rappels 
 Arrêt : docker compose -f docker/docker-compose.yml down.
 
 Relance de la BDD seule : docker compose -f docker/docker-compose.yml up -d mongodb.
