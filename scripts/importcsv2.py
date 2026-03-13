@@ -116,9 +116,13 @@ def migrate():
     #mongo_pass = os.getenv('MONGO_ROOT_PASSWORD', 'examplepassword')
     #mongo_host = os.getenv('MONGO_HOST', 'mongodb')
 
-    mongo_user = os.getenv('MONGO_ROOT_USER')
-    mongo_pass = os.getenv('MONGO_ROOT_PASSWORD')
+    mongo_root = os.getenv('MONGO_ROOT_USER')
+    mongo_root_password = os.getenv('MONGO_ROOT_PASSWORD')
     mongo_host = os.getenv('MONGO_HOST')
+    mongo_write_user = os.getenv('MONGO_WRITE_USER')
+    mongo_write_user_password = os.getenv('MONGO_WRITE_USER_PASSWORD')
+    mongo_read_user = os.getenv('MONGO_READ_USER')
+    mongo_read_user_password = os.getenv('MONGO_READ_USER_PASSWORD')
 
     #Si j'utilise le script seul, non conteneurisé 
     #mongo_host = os.getenv('MONGO_HOST', 'localhost')
@@ -135,8 +139,16 @@ def migrate():
 
 
     #la manière la plus propre de le faire, qui ajuste les paramètre en fonction de la variable d'environnement    
-    uri = f"mongodb://{mongo_user}:{mongo_pass}@{mongo_host}:27017/"
-    
+    #uri = f"mongodb://{mongo_root}:{mongo_root_password}@{mongo_host}:27017/"
+    #uri = f"mongodb://{mongo_user}:{mongo_pass}@{mongo_host}:27017/"
+    #uri = f"mongodb://migration_user:password_migration_123@{mongo_host}:27017/?authSource=healthcare_db"
+
+
+    #Apparement, les deux marchent une fois que l'on a correctement renseigné la base admin dans le fichier mongo-init.js pour
+    #la création des roles avec la commande db = db.getSiblingDB('admin');
+    #uri = f"mongodb://migration_user:password_migration_123@{mongo_host}:27017/"
+    uri = f"mongodb://{mongo_write_user}:{mongo_write_user_password}@{mongo_host}:27017/"
+    #uri = f"mongodb://migration_user:password_migration_123@{mongo_host}:27017/?authSource=admin"
 
     # 2. Pipeline de traitement
     #csv_path = download_kaggle_dataset(dataset_url)
