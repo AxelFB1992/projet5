@@ -4,15 +4,7 @@ import pandas as pd
 from pymongo import MongoClient
 import os
 
-# Connexion à MongoDB (l'hôte est le nom du service dans docker-compose)
-
-#client = MongoClient("mongodb://localhost:27017/")
-#client = MongoClient("mongodb://127.0.0.1:27017/")
-#client = MongoClient("mongodb://root:examplepassword@mongodb:27017/")
-#client = MongoClient("mongodb://host.docker.internal:27017/")
-#db = client['healthcare_db']
-#collection = db['patients']
-
+#fonction permettant de retourner un data frame (pandas) depuis un fichier csv
 def get_dataframe_from_csv(file_path):
     """
     Lit le fichier CSV et retourne un DataFrame Pandas.
@@ -26,6 +18,7 @@ def get_dataframe_from_csv(file_path):
         print(f"Erreur lors de la lecture du CSV : {e}")
         return None
 
+#fonction permettant de transformer un data_frame avec la structure de healthcare_db (kaggle) en une collection de documents (tableau de docs)
 def transform_medical_df_to_documents(df):
     """
     Transforme un DataFrame Pandas basé sur le data set Healtcare_db  en une liste de documents JSON structurés.
@@ -62,6 +55,8 @@ def transform_medical_df_to_documents(df):
     
     return documents
 
+#fonction principale du script : permet d'inserer le tableau de documents (documents) passé en paramètre dans une collection (collection_name)
+#, d'une base de données (db_name), d'un serveur mongodb (uri)
 def insert_to_mongodb(documents, uri, db_name, collection_name):
     """
     Assure la connexion à MongoDB et insère les documents.
@@ -94,6 +89,7 @@ def insert_to_mongodb(documents, uri, db_name, collection_name):
         if client:
             client.close()
 
+#fonction main, depuis laquelle toutes les instructions sont excutées, et qui appelle toutes les autres
 def migrate():
 
     """
@@ -107,9 +103,6 @@ def migrate():
     df = get_dataframe_from_csv('data/healthcare_dataset.csv')
     # Transformation en documents imbriqués
     documents = transform_medical_df_to_documents(df)
-    
-    #collection.insert_many(documents)
-    #insert_to_mongodb(documents,"mongodb://localhost:27017/","healthcare_db",'patients')
 
     # 1. Configuration (Variables d'environnement)
     #mongo_user = os.getenv('MONGO_ROOT_USER', 'root')
@@ -124,26 +117,6 @@ def migrate():
     mongo_read_user = os.getenv('MONGO_READ_USER')
     mongo_read_user_password = os.getenv('MONGO_READ_USER_PASSWORD')
 
-    #Si j'utilise le script seul, non conteneurisé 
-    #mongo_host = os.getenv('MONGO_HOST', 'localhost')
-
-    #Si on execute depuis la machine local, sans conteneur vers mongodb sur la machine local également : on préciste juste le nom du service qui tourne sur local host
-    #uri = "mongodb://localhost:27017/"
-    
-    #Si on execute depuis un autre conteneur (comme migrator) vers le conteneur mongodb, il faut utiliser mongodb comme hote
-    #uri = f"mongodb://{mongo_user}:{mongo_pass}@mongodb:27017/"
-
-    #Si on utilise depuis la machine local (script seul) vers le conteneur mongodb, il faut utiliser localhost car on ne peut pas accéder directement au conteneur
-    #Dans ce cas on tape sur le port 27017 de notre localhost et grâce à la redirection de port du conteneur, on tapera sur le conteneur mongodb
-    #uri = f"mongodb://{mongo_user}:{mongo_pass}@localhost:27017/"
-
-
-    #la manière la plus propre de le faire, qui ajuste les paramètre en fonction de la variable d'environnement    
-    #uri = f"mongodb://{mongo_root}:{mongo_root_password}@{mongo_host}:27017/"
-    #uri = f"mongodb://{mongo_user}:{mongo_pass}@{mongo_host}:27017/"
-    #uri = f"mongodb://migration_user:password_migration_123@{mongo_host}:27017/?authSource=healthcare_db"
-
-
     #Apparement, les deux marchent une fois que l'on a correctement renseigné la base admin dans le fichier mongo-init.js pour
     #la création des roles avec la commande db = db.getSiblingDB('admin');
     #uri = f"mongodb://migration_user:password_migration_123@{mongo_host}:27017/"
@@ -151,10 +124,7 @@ def migrate():
     #uri = f"mongodb://migration_user:password_migration_123@{mongo_host}:27017/?authSource=admin"
 
     # 2. Pipeline de traitement
-    #csv_path = download_kaggle_dataset(dataset_url)
-    
-    #if csv_path:
-        #df = get_dataframe_from_csv(csv_path)
+
     try :    
         if df is not None:
             docs = transform_medical_df_to_documents(df)
@@ -178,3 +148,36 @@ def migrate():
 
 if __name__ == "__main__":
     migrate()
+
+
+''' Commentaires sur l'uri de connexion
+
+# Connexion à MongoDB (l'hôte est le nom du service dans docker-compose)
+
+Plusieurs cas de figure possible
+
+#Si on execute depuis la machine local, sans conteneur (script seul) vers mongodb sur la machine local également : on préciste juste le nom du service qui tourne sur local host
+#uri = "mongodb://localhost:27017/"
+
+#Si on execute depuis un autre conteneur (comme migrator) vers le conteneur mongodb, il faut utiliser mongodb comme hote
+#uri = f"mongodb://{mongo_user}:{mongo_pass}@mongodb:27017/"
+
+#Si on utilise depuis la machine local (script seul) vers le conteneur mongodb, il faut utiliser localhost car on ne peut pas accéder directement au conteneur
+#Dans ce cas on tape sur le port 27017 de notre localhost et grâce à la redirection de port du conteneur, on tapera sur le conteneur mongodb
+#uri = f"mongodb://{mongo_user}:{mongo_pass}@localhost:27017/"
+
+
+#la manière la plus propre de le faire, qui ajuste les paramètre en fonction de la variable d'environnement    
+#uri = f"mongodb://{mongo_root}:{mongo_root_password}@{mongo_host}:27017/"
+#uri = f"mongodb://{mongo_user}:{mongo_pass}@{mongo_host}:27017/"
+#uri = f"mongodb://migration_user:password_migration_123@{mongo_host}:27017/?authSource=healthcare_db"
+
+
+#Apparement, les deux marchent une fois que l'on a correctement renseigné la base admin dans le fichier mongo-init.js pour
+#la création des roles avec la commande db = db.getSiblingDB('admin');
+#uri = f"mongodb://migration_user:password_migration_123@{mongo_host}:27017/"
+uri = f"mongodb://{mongo_write_user}:{mongo_write_user_password}@{mongo_host}:27017/"
+#uri = f"mongodb://migration_user:password_migration_123@{mongo_host}:27017/?authSource=admin"
+
+
+'''
