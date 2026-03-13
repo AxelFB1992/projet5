@@ -4,42 +4,104 @@
 Ce projet permet d'automatiser la migration d'un dataset de 55 500 patients hospitaliers depuis un format plat (CSV) vers une base de données NoSQL (MongoDB), tout en garantissant la portabilité grâce à l'orchestration Docker.
 
 ## 🛠 1. Configuration de l'Environnement de Travail
-Installation de Git et Sécurisation SSH
-Avant de manipuler le code, l'environnement Debian (Trixie/WSL) doit être configuré :
 
-Identité Git : git config --global user.name "Votre Nom" et git config --global user.email "votre@email.com".
+### Installation de Git et Sécurisation SSH
+Avant de manipuler le code, l'environnement Git sous Debian (Trixie/WSL) doit être configuré :
 
-Clé SSH : Génération via ssh-keygen -t ed25519. Cela permet de s'authentifier sans mot de passe sur GitHub.
+0) Installer git si cela n'est pas déjà fait : sudo apt install git
 
-Gestion de la Passphrase : Sur Debian, pour éviter de retaper la passphrase à chaque interaction, nous utilisons keychain :
+1) Cloner le repository (déjà crée sur le site de github) : git  clone https://github.com/AxelFB1992/projet5.git
 
-Installation : sudo apt install keychain
+2) Faire le test d'états des lieux, afin de voir si rien n'a été modifié depuis le clone : git status
 
-Configuration : Ajouter eval  $(keychain --eval --agents ssh id_ed25519) dans le fichier ~/.bashrc.
+3) Au cas ou un push serait nécessaire, il faut s'authifier pour se connecter au repository distant :
+git config --global user.name "Votre Nom" et git config --global user.email "votre@email.com".
 
-Environnement de Développement (Local)
-Pour tester le script sans Docker durant la phase de développement :
+4) Si on souhaite faire les pull et les push plus facilement, une connexion en SSH est plus adaptée.
+	a) Génération d'une clé SSH (via keygen) : ssh-keygen -t ed25519. 
+	b) afficher la valeur de la clé : cat ~/.ssh/id_ed25519.pub (normalement présent dans /home/user/.ssh)
+	c) Copier/coller la valeur de cette clé dans GitHub (dans Settings/SSH and GPG keys/New SSH keys)
+	d) modifier l'url par défaut du repostory (pour passer de hTTPS à SHH - git@github.com:AxelFB1992/projet5.git) :
+		git remote set-url origin  git@github.com:AxelFB1992/projet5.git
+	e) Faire un premier push ou pull (pour s'assurer que tout est ok) : git push -u origin main / git pull
 
-Venv : Création d'un environnement virtuel pour isoler les dépendances : python3 -m venv venv.
+Cette procédure permet de s'authentifier sans mot de passe sur GitHub.
 
-Activation : source venv/bin/activate.
+5) Gestion de la Passphrase SSH : Sur Debian, pour éviter de retaper la passphrase à chaque interaction, nous utilisons keychain :
+	a) Installation : sudo apt install keychain
+	b) Configuration : Ajouter eval  $(keychain --eval --agents ssh id_ed25519) dans le fichier ~/.bashrc.
 
-Gitignore : Le dossier venv/ et les fichiers temporaires (ex: Zone.Identifier sous WSL) sont exclus via le fichier .gitignore.
+### Environnement de Développement (Local)
+Pour tester le script sans lancer de conteneur durant la phase de développement :
+
+1) Venv : Création d'un environnement virtuel pour isoler les dépendances : python3 -m venv venv.
+
+2) Créer et renseigner les dépendances du requirements.txt : nano requirements.txt puis y écrire les dépendances python
+Exemples de dépendances :
+dnspython==2.8.0
+numpy==2.4.2
+pandas==3.0.1
+pymongo==4.16.0
+python-dateutil==2.9.0.post0
+six==1.17.0
+kagglehub
+
+3) Activation de l'environnement venv : source venv/bin/activate.
+
+### Gitignore : Enlever certains dossiers et documents de la branche git.
+
+Par exemple,  dossier venv/ et les fichiers temporaires (ex: Zone.Identifier sous WSL) doivent être exclus des branches git.
+Cela permet d'éviter de les envoyer/recevoir vers le/du dépot git alors qu'ils ne sont pas propres au projet du repository.
+Cela peut se faire via le fichier .gitignore.
+
+1) Créer le fichier .gitignore : nano .gitignore
+
+2) Renseigner les dossiers et documents qui seront ignorés par git lors des différents push/pull :
+Exemples : 
+venv/
+healthcare_dataset.csv:Zone.Identifier
+docker/.env
+
+Ces dossiers et fichiers seront desormais exclus de la branche courante !
 
 ## 📂 2. Architecture du Projet
-Le projet est organisé de manière modulaire :
+Le projet est organisé de manière modulaire pour séparer les données, la logique et l'infrastructure :
 
-/data : Contient le dataset source healthcare_dataset.csv.
+/data : Contient le dataset source healthcare_dataset.csv et potentiellement d'autres documents qui pourraient être utilisés par
+le service de migration conteneurisé (migrator)
 
-/scripts : Contient importcsv.py, le script Python de migration.
+/scripts : Contient importcsv.py et importscsv2.py, les script Python de migration. Il s'agit de deux versions d'un même script,
+utilisant des dépendances différentes (csvreader pour l'un et panda pour l'autre). Le script actuellement utilisé est importcsv2.py.
 
-/docker : Regroupe l'intelligence de déploiement :
+/docker : Regroupe l'intelligence de déploiement : tous les documents permettants de créer les conteneurs (migrator et mongodb) et 
+de les orchestrer pour qu'ils puissent échanger des informations.
 
-Dockerfile : Recette de construction de l'image Python du conteneur 'Migrator' (le script de migration).
+	- Dockerfile : Recette de construction de l'image Python du conteneur 'Migrator' (le script de migration).
+	- docker-compose.yml : Chef d'orchestre des services. Permet de générer les conteneurs et de les configurer.
+	- init-db.js : Script de configuration automatique utilisateurs et rôles.
 
-docker-compose.yml : Chef d'orchestre des services.
+3 utilisateurs mongodb sont définis par cette architecture :
+	- root : l'administrateur qui a tous les droits (lecture / écrire / ajout / suppression / modification)
+	- migration_user : l'utilisateur qui peut lire et écrire dans une base de données pour, par exemple, réaliser une migration. C'est avec
+	cet utilisateur que notre script va se connecter au conteneur mongodb pour procéder à la migration.
+	- analyst_user : l'utilisateur qui ne peut que lire dans une base de données. Typiquement, l'analyste.
 
-## 🐍 3. Le Script de Migration (importcsv.py)
+Ces 3 roles sont définis dans le fichier init-db.js et utilisé par le docker-compose (ainsi que par le script de migration importcsv2.py)
+pour définir les utilisateurs et roles de l'environnement. Les logins et mots de passe de ces 3 'utilisateurs' sont définis dans le
+fichier /.env par les appellations suivantes :
+
+	- MONGO_ROOT_USER : login root
+	- MONGO_ROOT_PASSWORD : mot de passe root
+	- MONGO_WRITE_USER : login migration_user
+	- MONGO_WRITE_USER_PASSWORD : mot de passe migration_user
+	- MONGO_READ_USER : login analyst_user
+	- MONGO_READ_USER_PASSWORD : mot de passe analyst_user
+	- MONGO_HOST=mongodb
+
+Remarque : a noter que ce fichier est "ignoré" par git, il doit donc être présent sur chaque machine en local et crée à l'initiative
+de l'utilisateur qui récupère le projet depuis github et souhaite le faire fonctionner sur sa machine.
+
+## 🐍 3. Le Script de Migration (importcsv2.py)
 Le script utilise la bibliothèque pymongo. Sa logique interne est la suivante :
 
 Connexion : Il cible le service mongodb sur le port 27017 avec les identifiants root / examplepassword.
