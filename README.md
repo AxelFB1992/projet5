@@ -106,16 +106,16 @@ de l'utilisateur qui récupère le projet depuis github et souhaite le faire fon
 ### Fonctionnement du script 
 Le script utilise la bibliothèque pymongo. Sa logique interne est la suivante :
 
+1)Connexion : Il cible le service mongodb sur le port 27017 avec les identifiants root / examplepassword.
+Il utilise pour cela l'URI suivante : uri = f"mongodb://{mongo_write_user}:{mongo_write_user_password}@localhsot:27017/"
 
-	- Connexion : Il cible le service mongodb sur le port 27017 avec les identifiants root / examplepassword.
-	Il utilise pour cela l'URI suivante : uri = f"mongodb://{mongo_write_user}:{mongo_write_user_password}@localhsot:27017/"
-	- Nettoyage : Le script de migration va systématiquement supprimer les éléments présents dans la collection visée. Cela permet
-	de s'assurer du bon déroulement de la migration en n'observant que les éléments prévus (et non des éléments qui seraient déjà présents avant la migration)
+2)Nettoyage : Le script de migration va systématiquement supprimer les éléments présents dans la collection visée. Cela permet de s'assurer du bon déroulement de la migration en n'observant que les éléments prévus (et non des éléments qui seraient déjà présents avant la migration)
 	--> Utilisation de healthcol.drop() pour réinitialiser la collection et éviter les doublons en cas de relance.
-	- Transformation : Lecture du CSV via panda. Transformation en tant que DataFrame. Puis de Data Frame en tant que tableau de document.
-	Chaque ligne est transformée en un document JSON complexe avec des sous-objets (medical_info, hospitalization, billing).
-	- Insertion dans la base de données conteneurisée (Mongodb) : Le tableau de documents est alors inséré dans la base de données grâce
-	à la connexion déjà établi avec le conteneur Mongodb. Dès lors, les 55 500 patients sont intégrés avec succès dans la base de données.
+
+3)Transformation : Lecture du CSV via panda. Transformation en tant que DataFrame. Puis de Data Frame en tant que tableau de document.
+Chaque ligne est transformée en un document JSON complexe avec des sous-objets (medical_info, hospitalization, billing).
+
+4)Insertion dans la base de données conteneurisée (Mongodb) : Le tableau de documents est alors inséré dans la base de données grâce à la connexion déjà établi avec le conteneur Mongodb. Dès lors, les 55 500 patients sont intégrés avec succès dans la base de données.
 
 Remarques :
 
@@ -197,12 +197,13 @@ Le script de migration affiche un message qui indique si la migration a réussi 
 ## 🧪 6. Vérification et Contrôle des Données
 
 Pour vérifier seulement les données, il faut que le conteneur mongodb soit en cours d'execution. Il y a deux cas possibles !
+
 	- Soit l'application global (embarquant les deux conteneurs : mongodb et migrator) tourne encore, auquel cas c'est nécessairement que mongodb est encore en execution.
-	- Soit l'application global s'est arrêté auquel cas il faut relancer le conteneur mongodb.
-	Pour relancer seulement le conteneur mongodb (sans le conteneur migrator), on peut utiliser cette commande :
-	docker compose -f docker/docker-compose.yml up -d mongodb.
-	Celle ci permet notamment de lancer le conteneur mongodb en tâche de fond, sans bloquer le terminal.
-	Pour arrêter le conteneur, on utilisera la commande suivante : Arrêt : docker compose -f docker/docker-compose.yml down.
+
+	- Soit l'application global s'est arrêté auquel cas il faut relancer le conteneur mongodb. 
+		Pour relancer seulement le conteneur mongodb (sans le conteneur migrator), on peut utiliser cette commande : docker compose -f docker/docker-compose.yml up -d mongodb.
+		Celle ci permet notamment de lancer le conteneur mongodb en tâche de fond, sans bloquer le terminal.
+		Pour arrêter le conteneur, on utilisera la commande suivante : Arrêt : docker compose -f docker/docker-compose.yml down.
 	
 1) Via le Terminal (Shell MongoDB)
 Pour vérifier que les 55 500 documents sont présents :
