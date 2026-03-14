@@ -76,9 +76,9 @@ utilisant des dépendances différentes (csvreader pour l'un et panda pour l'aut
 /docker : Regroupe l'intelligence de déploiement : tous les documents permettants de créer les conteneurs (migrator et mongodb) et 
 de les orchestrer pour qu'ils puissent échanger des informations.
 
-	* Dockerfile : Recette de construction de l'image Python du conteneur 'Migrator' (le script de migration).
-	* docker-compose.yml : Chef d'orchestre des services. Permet de générer les conteneurs et de les configurer.
-	* mongo-init.js : Script de configuration automatique utilisateurs et rôles.
+	- Dockerfile : Recette de construction de l'image Python du conteneur 'Migrator' (le script de migration).
+	- docker-compose.yml : Chef d'orchestre des services. Permet de générer les conteneurs et de les configurer.
+	- mongo-init.js : Script de configuration automatique utilisateurs et rôles.
 
 3 utilisateurs mongodb sont définis par cette architecture :
 	- root : l'administrateur qui a tous les droits (lecture / écrire / ajout / suppression / modification)
@@ -196,7 +196,7 @@ Le script de migration affiche un message qui indique si la migration a réussi 
 
 ## 🧪 6. Vérification et Contrôle des Données
 
-Pour vérifier seulement les données, il faut que le conteneur mongodb soit en cours d'execution. Il y a deux cas possibles !
+Pour vérifier seulement les données, il faut que le conteneur mongodb soit en cours d'execution. Il y a deux cas possibles :
 
 	- Soit l'application global (embarquant les deux conteneurs : mongodb et migrator) tourne encore, auquel cas c'est nécessairement que mongodb est encore en execution.
 
