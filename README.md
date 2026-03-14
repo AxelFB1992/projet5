@@ -76,9 +76,9 @@ utilisant des dépendances différentes (csvreader pour l'un et panda pour l'aut
 /docker : Regroupe l'intelligence de déploiement : tous les documents permettants de créer les conteneurs (migrator et mongodb) et 
 de les orchestrer pour qu'ils puissent échanger des informations.
 
-	- Dockerfile : Recette de construction de l'image Python du conteneur 'Migrator' (le script de migration).
-	- docker-compose.yml : Chef d'orchestre des services. Permet de générer les conteneurs et de les configurer.
-	- mongo-init.js : Script de configuration automatique utilisateurs et rôles.
+	* Dockerfile : Recette de construction de l'image Python du conteneur 'Migrator' (le script de migration).
+	* docker-compose.yml : Chef d'orchestre des services. Permet de générer les conteneurs et de les configurer.
+	* mongo-init.js : Script de configuration automatique utilisateurs et rôles.
 
 3 utilisateurs mongodb sont définis par cette architecture :
 	- root : l'administrateur qui a tous les droits (lecture / écrire / ajout / suppression / modification)
