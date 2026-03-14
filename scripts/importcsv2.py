@@ -102,7 +102,7 @@ def migrate():
 
     df = get_dataframe_from_csv('data/healthcare_dataset.csv')
     # Transformation en documents imbriqués
-    documents = transform_medical_df_to_documents(df)
+    #documents = transform_medical_df_to_documents(df)
 
     # 1. Configuration (Variables d'environnement)
     #mongo_user = os.getenv('MONGO_ROOT_USER', 'root')
@@ -138,7 +138,7 @@ def migrate():
                 print("="*50)
         
         
-                print(f"Migration réussie : {len(documents)} patients insérés.")
+                print(f"Migration réussie : {len(docs)} patients insérés.")
             else:
                 print(f"Pas d'insertion réalisées...")
     except Exception as e:

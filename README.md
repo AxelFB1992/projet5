@@ -1,9 +1,9 @@
 
 
-# 🏥 Projet de Migration de Données Médicales (CSV vers MongoDB NoSQL)
+# Projet de Migration de Données Médicales (CSV vers MongoDB NoSQL)
 Ce projet permet d'automatiser la migration d'un dataset de 55 500 patients hospitaliers depuis un format plat (CSV) vers une base de données NoSQL (MongoDB), tout en garantissant la portabilité grâce à l'orchestration Docker.
 
-## 🛠 1. Configuration de l'Environnement de Travail
+## 1. Configuration de l'Environnement de Travail
 
 ### Installation de Git et Sécurisation SSH
 Avant de manipuler le code, l'environnement Git sous Debian (Trixie/WSL) doit être configuré :
@@ -18,18 +18,18 @@ Avant de manipuler le code, l'environnement Git sous Debian (Trixie/WSL) doit ê
 git config --global user.name "Votre Nom" et git config --global user.email "votre@email.com".
 
 4) Si on souhaite faire les pull et les push plus facilement, une connexion en SSH est plus adaptée.
-	a) Génération d'une clé SSH (via keygen) : ssh-keygen -t ed25519. 
-	b) afficher la valeur de la clé : cat ~/.ssh/id_ed25519.pub (normalement présent dans /home/user/.ssh)
-	c) Copier/coller la valeur de cette clé dans GitHub (dans Settings/SSH and GPG keys/New SSH keys)
-	d) modifier l'url par défaut du repostory (pour passer de hTTPS à SHH - git@github.com:AxelFB1992/projet5.git) :
+	a. Génération d'une clé SSH (via keygen) : ssh-keygen -t ed25519. 
+	b. afficher la valeur de la clé : cat ~/.ssh/id_ed25519.pub (normalement présent dans /home/user/.ssh)
+	c. Copier/coller la valeur de cette clé dans GitHub (dans Settings/SSH and GPG keys/New SSH keys)
+	d. modifier l'url par défaut du repostory (pour passer de hTTPS à SHH - git@github.com:AxelFB1992/projet5.git) :
 		git remote set-url origin  git@github.com:AxelFB1992/projet5.git
-	e) Faire un premier push ou pull (pour s'assurer que tout est ok) : git push -u origin main / git pull
+	e. Faire un premier push ou pull (pour s'assurer que tout est ok) : git push -u origin main / git pull
 
 Cette procédure permet de s'authentifier sans mot de passe sur GitHub.
 
 5) Gestion de la Passphrase SSH : Sur Debian, pour éviter de retaper la passphrase à chaque interaction, nous utilisons keychain :
-	a) Installation : sudo apt install keychain
-	b) Configuration : Ajouter eval  $(keychain --eval --agents ssh id_ed25519) dans le fichier ~/.bashrc.
+	a. Installation : sudo apt install keychain
+	b. Configuration : Ajouter eval  $(keychain --eval --agents ssh id_ed25519) dans le fichier ~/.bashrc.
 
 ### Environnement de Développement (Local)
 Pour tester le script sans lancer de conteneur durant la phase de développement :
@@ -64,7 +64,7 @@ docker/.env
 
 Ces dossiers et fichiers seront desormais exclus de la branche courante !
 
-## 📂 2. Architecture du Projet
+##  2. Architecture du Projet
 Le projet est organisé de manière modulaire pour séparer les données, la logique et l'infrastructure :
 
 /data : Contient le dataset source healthcare_dataset.csv et potentiellement d'autres documents qui pourraient être utilisés par
@@ -76,32 +76,32 @@ utilisant des dépendances différentes (csvreader pour l'un et panda pour l'aut
 /docker : Regroupe l'intelligence de déploiement : tous les documents permettants de créer les conteneurs (migrator et mongodb) et 
 de les orchestrer pour qu'ils puissent échanger des informations.
 
-	- Dockerfile : Recette de construction de l'image Python du conteneur 'Migrator' (le script de migration).
-	- docker-compose.yml : Chef d'orchestre des services. Permet de générer les conteneurs et de les configurer.
-	- mongo-init.js : Script de configuration automatique utilisateurs et rôles.
+- Dockerfile : Recette de construction de l'image Python du conteneur 'Migrator' (le script de migration).
+- docker-compose.yml : Chef d'orchestre des services. Permet de générer les conteneurs et de les configurer.
+- mongo-init.js : Script de configuration automatique utilisateurs et rôles.
 
 3 utilisateurs mongodb sont définis par cette architecture :
-	- root : l'administrateur qui a tous les droits (lecture / écrire / ajout / suppression / modification)
-	- migration_user : l'utilisateur qui peut lire et écrire dans une base de données pour, par exemple, réaliser une migration. C'est avec
-	cet utilisateur que notre script va se connecter au conteneur mongodb pour procéder à la migration.
-	- analyst_user : l'utilisateur qui ne peut que lire dans une base de données. Typiquement, l'analyste.
+- root : l'administrateur qui a tous les droits (lecture / écrire / ajout / suppression / modification)
+- migration_user : l'utilisateur qui peut lire et écrire dans une base de données pour, par exemple, réaliser une migration. C'est avec
+cet utilisateur que notre script va se connecter au conteneur mongodb pour procéder à la migration.
+- analyst_user : l'utilisateur qui ne peut que lire dans une base de données. Typiquement, l'analyste.
 
 Ces 3 roles sont définis dans le fichier init-db.js et utilisé par le docker-compose (ainsi que par le script de migration importcsv2.py)
 pour définir les utilisateurs et roles de l'environnement. Les logins et mots de passe de ces 3 'utilisateurs' sont définis dans le
 fichier /.env par les appellations suivantes :
 
-	- MONGO_ROOT_USER : login root
-	- MONGO_ROOT_PASSWORD : mot de passe root
-	- MONGO_WRITE_USER : login migration_user
-	- MONGO_WRITE_USER_PASSWORD : mot de passe migration_user
-	- MONGO_READ_USER : login analyst_user
-	- MONGO_READ_USER_PASSWORD : mot de passe analyst_user
-	- MONGO_HOST=mongodb
+- MONGO_ROOT_USER : login root
+- MONGO_ROOT_PASSWORD : mot de passe root
+- MONGO_WRITE_USER : login migration_user
+- MONGO_WRITE_USER_PASSWORD : mot de passe migration_user
+- MONGO_READ_USER : login analyst_user
+- MONGO_READ_USER_PASSWORD : mot de passe analyst_user
+- MONGO_HOST=mongodb
 
 Remarque : a noter que ce fichier est "ignoré" par git, il doit donc être présent sur chaque machine en local et crée à l'initiative
 de l'utilisateur qui récupère le projet depuis github et souhaite le faire fonctionner sur sa machine.
 
-## 🐍 3. Le Script de Migration (importcsv2.py)
+##  3. Le Script de Migration (importcsv2.py)
 
 ### Fonctionnement du script 
 Le script utilise la bibliothèque pymongo. Sa logique interne est la suivante :
@@ -149,7 +149,7 @@ Ci-dessous le schémas de la base de données tel qu'il est structuré suite à 
 | ∟ `provider` | String | Nom de la compagnie d'assurance. |
 | ∟ `amount` | Float | Montant total facturé pour le séjour. |
 
-## 🐳 4. Conteneurisation et Orchestration
+##  4. Conteneurisation et Orchestration
 
 1) Le Dockerfile
 Il construit une image personnalisée pour le service migrator, basé sur le script :
@@ -163,23 +163,23 @@ Montage du code source via le mécanisme du DockerFile.
 2) Le Docker Compose
 Il définit deux services essentiels :
 
-	- mongodb : Utilise l'image mongo:latest.
-		Volumes :
-		Un volume d'entrée est crée pour que le fichier mongo-init.js puisse être transmis de la machine local vers le conteneur pour éxécution de l'environnement d'authentification.
-		Un volume de sortie nommé 'mongo-data' est créé pour que les données persistent même si le conteneur est supprimé.
-		Environnement :
-		Les variables MONGO_ROOT_USER et MONGO_ROOT_PASSWORD sont utilisés pour l'initialisation du conteneur : un premier compte doit impérativement être crée.
-		
-	- migrator : Notre script Python.
-		Volumes :
-		Un volume d'entrée est crée pour que le fichier healthcare_dataset.csv puisse être transmis de la machine local vers le conteneur pour migration.
-		Environnement :
-		Les variables MONGO_ROOT_USER, MONGO_ROOT_PASSWORD, MONGO_WRITE_USER, MONGO_WRITE_USER_PASSWORD, MONGO_READ_USER,
-		MONGO_READ_USER_PASSWORD, MONGO_HOST sont utilisés pour se connecter à la base de données sous différents utilisation avec différents roles.
+- mongodb : Utilise l'image mongo:latest.
+	Volumes :
+	Un volume d'entrée est crée pour que le fichier mongo-init.js puisse être transmis de la machine local vers le conteneur pour éxécution de l'environnement d'authentification.
+	Un volume de sortie nommé 'mongo-data' est créé pour que les données persistent même si le conteneur est supprimé.
+	Environnement :
+	Les variables MONGO_ROOT_USER et MONGO_ROOT_PASSWORD sont utilisés pour l'initialisation du conteneur : un premier compte doit impérativement être crée.
+	
+- migrator : Notre script Python.
+	Volumes :
+	Un volume d'entrée est crée pour que le fichier healthcare_dataset.csv puisse être transmis de la machine local vers le conteneur pour migration.
+	Environnement :
+	Les variables MONGO_ROOT_USER, MONGO_ROOT_PASSWORD, MONGO_WRITE_USER, MONGO_WRITE_USER_PASSWORD, MONGO_READ_USER,
+	MONGO_READ_USER_PASSWORD, MONGO_HOST sont utilisés pour se connecter à la base de données sous différents utilisation avec différents roles.
 
 Réseau : Les deux services communiquent via un bridge network privé (my_network).
 
-## 🚀 5. Procédure de Lancement
+##  5. Procédure de Lancement
 Depuis la racine du projet, exécutez la commande suivante (le flag -f est nécessaire car le fichier est dans le dossier /docker) :
 
 Bash
@@ -194,17 +194,17 @@ MongoDB démarre en tâche de fond.
 
 Le script de migration affiche un message qui indique si la migration a réussi ou non.
 
-## 🧪 6. Vérification et Contrôle des Données
+##  6. Vérification et Contrôle des Données
 
 Pour vérifier seulement les données, il faut que le conteneur mongodb soit en cours d'execution. Il y a deux cas possibles :
 
-	- Soit l'application global (embarquant les deux conteneurs : mongodb et migrator) tourne encore, auquel cas c'est nécessairement que mongodb est encore en execution.
+- Soit l'application global (embarquant les deux conteneurs : mongodb et migrator) tourne encore, auquel cas c'est nécessairement que mongodb est encore en execution.
 
-	- Soit l'application global s'est arrêté auquel cas il faut relancer le conteneur mongodb. 
-		Pour relancer seulement le conteneur mongodb (sans le conteneur migrator), on peut utiliser cette commande : docker compose -f docker/docker-compose.yml up -d mongodb.
-		Celle ci permet notamment de lancer le conteneur mongodb en tâche de fond, sans bloquer le terminal.
-		Pour arrêter le conteneur, on utilisera la commande suivante : Arrêt : docker compose -f docker/docker-compose.yml down.
-	
+- Soit l'application global s'est arrêté auquel cas il faut relancer le conteneur mongodb. 
+	Pour relancer seulement le conteneur mongodb (sans le conteneur migrator), on peut utiliser cette commande : docker compose -f docker/docker-compose.yml up -d mongodb.
+	Celle ci permet notamment de lancer le conteneur mongodb en tâche de fond, sans bloquer le terminal.
+	Pour arrêter le conteneur, on utilisera la commande suivante : Arrêt : docker compose -f docker/docker-compose.yml down.
+
 1) Via le Terminal (Shell MongoDB)
 Pour vérifier que les 55 500 documents sont présents :
 
