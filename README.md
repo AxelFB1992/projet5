@@ -18,18 +18,18 @@ Avant de manipuler le code, l'environnement Git sous Debian (Trixie/WSL) doit ê
 git config --global user.name "Votre Nom" et git config --global user.email "votre@email.com".
 
 4) Si on souhaite faire les pull et les push plus facilement, une connexion en SSH est plus adaptée.
-	a. Génération d'une clé SSH (via keygen) : ssh-keygen -t ed25519. 
-	b. afficher la valeur de la clé : cat ~/.ssh/id_ed25519.pub (normalement présent dans /home/user/.ssh)
-	c. Copier/coller la valeur de cette clé dans GitHub (dans Settings/SSH and GPG keys/New SSH keys)
-	d. modifier l'url par défaut du repostory (pour passer de hTTPS à SHH - git@github.com:AxelFB1992/projet5.git) :
-		git remote set-url origin  git@github.com:AxelFB1992/projet5.git
-	e. Faire un premier push ou pull (pour s'assurer que tout est ok) : git push -u origin main / git pull
+- Génération d'une clé SSH (via keygen) : ssh-keygen -t ed25519. 
+- afficher la valeur de la clé : cat ~/.ssh/id_ed25519.pub (normalement présent dans /home/user/.ssh)
+- Copier/coller la valeur de cette clé dans GitHub (dans Settings/SSH and GPG keys/New SSH keys)
+- modifier l'url par défaut du repostory (pour passer de hTTPS à SHH - git@github.com:AxelFB1992/projet5.git) :
+  git remote set-url origin  git@github.com:AxelFB1992/projet5.git
+- Faire un premier push ou pull (pour s'assurer que tout est ok) : git push -u origin main / git pull
 
 Cette procédure permet de s'authentifier sans mot de passe sur GitHub.
 
 5) Gestion de la Passphrase SSH : Sur Debian, pour éviter de retaper la passphrase à chaque interaction, nous utilisons keychain :
-	a. Installation : sudo apt install keychain
-	b. Configuration : Ajouter eval  $(keychain --eval --agents ssh id_ed25519) dans le fichier ~/.bashrc.
+- Installation : sudo apt install keychain
+- Configuration : Ajouter eval  $(keychain --eval --agents ssh id_ed25519) dans le fichier ~/.bashrc.
 
 ### Environnement de Développement (Local)
 Pour tester le script sans lancer de conteneur durant la phase de développement :
