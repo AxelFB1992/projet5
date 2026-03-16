@@ -5,6 +5,28 @@ from pymongo import MongoClient
 import os
 
 #fonction permettant de retourner un data frame (pandas) depuis un fichier csv
+
+def get_dataframe_kaggle(file_path):
+    """
+    Lit le fichier CSV et retourne un DataFrame Pandas.
+    """
+    try:
+        print(f"Chargement des données depuis : {file_path}")
+        
+        # Load the latest version
+        df = kagglehub.load_dataset(KaggleDatasetAdapter.PANDAS,"prasad22/healthcare-dataset",file_path)
+        # Provide any additional arguments like 
+        # sql_query or pandas_kwargs. See the 
+        # documenation for more information:
+        # https://github.com/Kaggle/kagglehub/blob/main/README.md#kaggledatasetadapterpandas
+        
+        print(f"Données chargées : {len(df)} lignes détectées.")
+        return df
+    except Exception as e:
+        print(f"Erreur lors de la lecture du CSV : {e}")
+        return None
+
+#fonction permettant de retourner un data frame (pandas) depuis un fichier csv
 def get_dataframe_from_csv(file_path):
     """
     Lit le fichier CSV et retourne un DataFrame Pandas.
@@ -99,7 +121,9 @@ def migrate():
     print(" DÉMARRAGE DE LA MIGRATION HEALTHCARE (MODULAIRE)")
     print("="*50 + "\n")
 
-
+    #Branch 2 : on essaie de récuperer le data frame healthcare_dataset depuis kaggle
+    #Au passage, on le charge aussi dans un fichier .csv de chemin : data/healthcare_dataset.csv
+    #df = get_dataframe_kaggle('data/healthcare_dataset.csv')
     df = get_dataframe_from_csv('data/healthcare_dataset.csv')
     # Transformation en documents imbriqués
     #documents = transform_medical_df_to_documents(df)
